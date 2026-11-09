@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- QR Corner Top Left -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M27,27 h16 v5 h-11 v11 h-5 z" />
+    <!-- QR Corner Top Right -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M81,27 h-16 v5 h11 v11 h5 z" />
+    <!-- QR Corner Bottom Left -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M27,81 h16 v-5 h-11 v-11 h-5 z" />
+    <!-- QR Corner Bottom Right -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M81,81 h-16 v-5 h11 v-11 h5 z" />
+    <!-- Center QR Pattern -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,37 h12 v12 h-12 z M40,40 h6 v6 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M59,37 h12 v12 h-12 z M62,40 h6 v6 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M37,59 h12 v12 h-12 z M40,62 h6 v6 h-6 z" />
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M59,59 h5 v5 h-5 z M66,59 h5 v5 h-5 z M59,66 h5 v5 h-5 z M66,66 h5 v5 h-5 z M52,44 h4 v20 h-4 z" />
+    <!-- Red/Laser Scan Beam -->
+    <path
+        android:fillColor="#F43F5E"
+        android:pathData="M24,53 h60 v3 h-60 z" />
+</vector>

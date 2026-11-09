@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Warna diatur Compose. Theme XML hanya menghilangkan ActionBar dan
+         memberi warna latar awal supaya tidak ada kedip putih saat start. -->
+    <style name="Theme.MasterAndroid" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/app_background</item>
+    </style>
+</resources>

@@ -1,0 +1,9 @@
+# Salin file ini jadi local.properties lalu sesuaikan path-nya.
+# local.properties TIDAK ikut git (ada di .gitignore) karena isinya
+# path yang berbeda di tiap mesin.
+#
+# Contoh di WSL / Linux desktop:
+sdk.dir=/home/NAMA_USER/android-sdk
+#
+# Contoh di Debian proot (Termux), sesuaikan dengan hasil `echo $ANDROID_HOME`:
+# sdk.dir=/root/android-sdk

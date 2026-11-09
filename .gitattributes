@@ -1,0 +1,21 @@
+# Normalisasi akhir baris. WAJIB ada: repo ini dibuat dari Windows/WSL tapi
+# dibangun juga di Linux (Termux). Tanpa ini, gradlew bisa ter-checkout dengan
+# CRLF dan Termux menolaknya: "bad interpreter: /bin/sh^M".
+* text=auto eol=lf
+
+# Hanya skrip Windows yang boleh CRLF.
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Skrip wrapper: LF, dan executable (lihat juga `git update-index --chmod=+x`).
+gradlew text eol=lf
+
+# Biner: jangan pernah disentuh normalisasi.
+*.jar      binary
+*.webp     binary
+*.png      binary
+*.jpg      binary
+*.apk      binary
+*.aab      binary
+*.keystore binary
+*.jks      binary
