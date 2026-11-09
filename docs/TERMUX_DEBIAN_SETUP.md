@@ -6,6 +6,47 @@ sebelum verifikasi langkahnya lolos.
 
 ---
 
+## Jalan cepat: satu skrip
+
+Langkah 1 sampai 5 di bawah sudah diotomatiskan. Di dalam Debian proot:
+
+```bash
+mkdir -p ~/projects && cd ~/projects
+git clone https://github.com/ariecav/AndroidMaster.git
+cd AndroidMaster
+bash scripts/setup-termux.sh
+
+# sekali saja, kalau skrip bilang ~/bin belum ada di PATH:
+echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+install-hp --build_only      # build APK debug
+install-hp --toHP            # pasang ke HP lewat adb (lihat Langkah 7)
+install-hp                   # build lalu pasang
+```
+
+`setup-termux.sh` aman diulang dan **tidak mengubah file yang ikut git**. Yang
+dikerjakannya:
+
+| Langkah | Hasil |
+|---|---|
+| `apt install` JDK 21, `box64`, `unzip`, `curl`, `adb`, `git` (yang belum ada) | paket sistem (butuh `sudo` kalau bukan root) |
+| Unduh cmdline-tools kalau `sdkmanager` belum ada, terima lisensi | `~/android-sdk` (ubah lewat `ANDROID_HOME`) |
+| Pasang platform sesuai `compileSdk` di `app/build.gradle.kts` | `~/android-sdk/platforms/android-37.2` |
+| Unduh aapt2 x86_64 yang cocok dengan versi `agp` di `libs.versions.toml` + pembungkus box64 | `~/bin/aapt2`, `~/bin/aapt2-<versi>-linux/` |
+| Setelan Gradle khusus HP (nilai yang sudah ada tidak ditimpa) | `~/.gradle/gradle.properties` |
+| Path SDK | `local.properties` (di-ignore git) |
+| Perintah `install-hp` | symlink `~/bin/install-hp` -> `scripts/install-hp` |
+
+build-tools sengaja tidak dipasang: AGP memilih dan mengunduh versinya sendiri
+saat build pertama (lisensinya sudah diterima oleh skrip).
+
+Kalau AGP dinaikkan, cukup jalankan ulang skripnya: versi aapt2 yang baru
+dicari otomatis dari metadata Maven Google.
+
+Kalau skrip gagal, baca langkah manual di bawah untuk langkah yang gagal itu.
+
+---
+
 ## 0. Yang paling penting, baca dulu
 
 Membangun Android di HP gagal karena **satu** alasan utama, dan itu bukan soal
@@ -199,12 +240,31 @@ Catatan jujur: `aapt2` dari Termux biasanya versi lebih tua daripada yang
 diminta AGP 9.4.1. Kalau versinya terlalu jauh, AGP menolak dengan keluhan
 protokol daemon `aapt2`. Kalau itu terjadi, Jalur B lagi.
 
+**Jangan pakai `aapt2` bawaan Debian** (paket `aapt`, `/usr/bin/aapt2`). Memang
+native arm64 dan langsung jalan, tapi versinya 2.19 (Android 14) dan
+**sudah diuji gagal** membaca `android.jar` API 37.2:
+
+```
+E aapt2 : LoadedArsc.cpp:94 RES_TABLE_TYPE_TYPE entry offsets overlap actual entry data.
+error: failed to load include path .../platforms/android-37.2/android.jar.
+```
+
 ### Jalur B — jalankan `aapt2` x86_64 lewat box64
 
 `box64` menerjemahkan binary x86_64 ke aarch64. Caranya: bungkus `aapt2` asli
-dengan skrip, lalu arahkan AGP ke skrip itu.
+dengan skrip, lalu arahkan AGP ke skrip itu. **Jalur ini yang sudah diuji
+sampai `assembleDebug` sukses** (Debian 13 trixie, box64 0.3.4), dan yang
+dikerjakan `scripts/setup-termux.sh`.
 
-1. Pasang box64 di Termux (dari TUR):
+1. Pasang box64. Paling mudah langsung di dalam Debian, paketnya ada di repo
+   resmi Debian 13:
+
+```bash
+sudo apt install box64
+box64 --version
+```
+
+Alternatif, di Termux (dari TUR):
 
 ```bash
 pkg install tur-repo
@@ -232,20 +292,40 @@ dan file hasil ekstraknya bernama `.../aapt2-9.4.1-15978811-linux/aapt2`.
 Periksa arsitekturnya untuk memastikan: `file <path tadi>` harus menyebut
 `x86-64`.
 
-3. Buat pembungkusnya:
+Kalau override aapt2 sudah aktif, AGP tidak mengunduhnya. Ambil langsung dari
+Maven Google:
 
 ```bash
-AAPT2_X86=$(find ~/.gradle/caches -type f -name aapt2 -path '*aapt2-*-linux*' | head -1)
+V=9.4.1-15978811
+mkdir -p ~/bin/aapt2-$V-linux && cd ~/bin/aapt2-$V-linux
+curl -fsSLO https://dl.google.com/android/maven2/com/android/tools/build/aapt2/$V/aapt2-$V-linux.jar
+unzip -oq aapt2-$V-linux.jar aapt2 && chmod +x aapt2
+```
+
+3. Buat pembungkusnya. Pakai **bash** (bukan sh), karena butuh process
+   substitution:
+
+```bash
+AAPT2_X86=$(find ~/.gradle/caches ~/bin -type f -name aapt2 -path '*aapt2-*-linux*' | head -1)
 mkdir -p ~/bin
 cat > ~/bin/aapt2 <<EOF
-#!/bin/sh
+#!/bin/bash
 # aapt2 asli adalah x86_64; box64 menerjemahkannya ke aarch64.
-# "\$@" dan stdin diteruskan apa adanya karena AGP memakai mode daemon.
-exec /data/data/com.termux/files/usr/bin/box64 "$AAPT2_X86" "\$@"
+export BOX64_LOG=0 BOX64_NOBANNER=1
+exec /usr/bin/box64 "$AAPT2_X86" "\$@" \\
+  > >(grep --line-buffered -v "BOX64") 2> >(grep --line-buffered -v "BOX64" >&2)
 EOF
 chmod +x ~/bin/aapt2
 ~/bin/aapt2 version        # harus keluar nomor versi, bukan Exec format error
 ```
+
+Kenapa ada penyaring `grep -v BOX64`: box64 selalu mencetak
+`[BOX64] Error: Symbol nftw not found ...` **ke stdout**, bahkan dengan
+`BOX64_LOG=0`. Fungsi `nftw` tidak dipakai aapt2, jadi pesannya tidak
+berbahaya. Tapi AGP memakai aapt2 dalam mode daemon, membaca stdout-nya, lalu
+melaporkan baris asing itu sebagai `AAPT2 ... Unexpected error output`. Kalau
+memakai box64 dari Termux, ganti `/usr/bin/box64` dengan
+`/data/data/com.termux/files/usr/bin/box64`.
 
 4. Arahkan AGP ke pembungkus itu:
 
@@ -294,9 +374,13 @@ Perkiraan waktu di HP: build pertama **15–40 menit** (mengunduh dependency dan
 mengisi cache), build berikutnya 1–5 menit. Sabar, dan jangan dibatalkan di
 tengah jalan — build yang dibunuh bisa meninggalkan cache rusak.
 
-Kalau `assembleDebug` gagal di tahap `zipalign`, ingat `zipalign` juga x86_64:
-bungkus dengan cara yang sama seperti `aapt2` di Jalur B lalu taruh
-`~/bin` di depan `PATH`.
+`zipalign` x86_64 di build-tools **tidak dipakai** oleh `assembleDebug` dengan
+AGP 9.4.1 (sudah diuji, APK jadi tanpa perlu dibungkus). Kalau suatu saat
+build gagal di tahap `zipalign`, bungkus dengan cara yang sama seperti `aapt2`
+di Jalur B lalu taruh `~/bin` di depan `PATH`.
+
+Peringatan `The option setting 'android.aapt2FromMavenOverride=...' is
+experimental` muncul di setiap build. Itu normal, abaikan.
 
 ---
 
@@ -335,7 +419,13 @@ Dua port itu **berbeda** dan **berubah setiap kali** Wireless debugging
 dinyalakan ulang. Baca dari layar Opsi Pengembang, jangan dihafal.
 
 `adb` dari `$ANDROID_HOME/platform-tools` adalah binary x86_64, jadi pakai
-`adb` milik paket `android-tools` Termux.
+`adb` milik paket `android-tools` Termux, atau `adb` arm64 dari Debian
+(`sudo apt install adb`, dipasang oleh `setup-termux.sh`) yang bisa dipakai
+langsung dari dalam proot.
+
+Setelah `adb connect`, cukup `install-hp --toHP`: APK dipasang dengan
+`adb install -r` lalu aplikasinya dibuka. Nama paket dibaca dari
+`applicationId` di `app/build.gradle.kts`.
 
 ---
 

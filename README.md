@@ -25,6 +25,9 @@ AndroidMaster/
 ├── docs/
 │   ├── TERMUX_DEBIAN_SETUP.md    <- cara menjalankan di HP (Termux + Debian proot)
 │   └── TROUBLESHOOTING.md        <- kumpulan error + solusinya
+├── scripts/
+│   ├── setup-termux.sh           setup sekali jalan untuk HP (aarch64)
+│   └── install-hp                build APK + pasang ke HP lewat adb
 ├── build.gradle.kts              pendaftaran plugin tingkat atas
 ├── settings.gradle.kts           nama project + daftar modul + repository
 ├── gradle.properties             setelan yang ikut git (bukan setelan mesin)
@@ -82,6 +85,14 @@ APK keluar di `app/build/outputs/apk/debug/app-debug.apk`.
 Lihat **[docs/TERMUX_DEBIAN_SETUP.md](docs/TERMUX_DEBIAN_SETUP.md)**. Ada satu
 hal yang wajib dibaca di sana: binary `aapt2` dari Google itu **x86_64**,
 sedangkan HP Android `aarch64`, jadi butuh penanganan khusus.
+
+Penanganan itu sudah diotomatiskan. Setelah clone, di dalam Debian proot:
+
+```bash
+bash scripts/setup-termux.sh   # sekali saja per HP
+install-hp --build_only        # build APK debug
+install-hp --toHP              # pasang ke HP lewat adb
+```
 
 ## Menambah dependency
 

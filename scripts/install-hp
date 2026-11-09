@@ -1,0 +1,68 @@
+#!/bin/bash
+# install-hp: build APK debug & pasang ke HP lewat adb.
+# Dipasang ke ~/bin oleh scripts/setup-termux.sh (symlink).
+#
+# Pemakaian:
+#   install-hp              build lalu install
+#   install-hp --build_only build APK saja
+#   install-hp --toHP       install APK yang sudah ada ke HP (tanpa build)
+#
+# Proyek diambil dari root git folder saat ini kalau ada gradlew-nya,
+# kalau tidak jatuh ke ~/AndroidMaster.
+
+usage() {
+  echo "Pemakaian: install-hp [--build_only | --toHP]"
+  echo "  (tanpa opsi)  build APK debug lalu install ke HP"
+  echo "  --build_only  build APK debug saja"
+  echo "  --toHP        install APK yang sudah ada ke HP lewat adb"
+}
+
+mode="all"
+case "$1" in
+  "") ;;
+  --build_only) mode="build" ;;
+  --toHP) mode="install" ;;
+  -h|--help) usage; exit 0 ;;
+  *) echo "Opsi tidak dikenal: $1" >&2; usage >&2; exit 2 ;;
+esac
+
+root=$(git rev-parse --show-toplevel 2>/dev/null)
+[ -n "$root" ] && [ -x "$root/gradlew" ] || root="$HOME/AndroidMaster"
+if [ ! -x "$root/gradlew" ]; then
+  echo "gradlew tidak ditemukan di $root" >&2; exit 1
+fi
+apk="$root/app/build/outputs/apk/debug/app-debug.apk"
+
+if [ "$mode" != "install" ]; then
+  echo ">> Build APK debug di $root"
+  ( cd "$root" && ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}" ./gradlew assembleDebug ) || {
+    echo "!! Build gagal." >&2; exit 1; }
+  echo ">> APK: $apk"
+fi
+[ "$mode" = "build" ] && exit 0
+
+if [ ! -f "$apk" ]; then
+  echo "APK belum ada. Jalankan dulu: install-hp --build_only" >&2; exit 1
+fi
+
+# Port Wireless debugging berubah tiap kali dinyalakan, jadi tidak di-hardcode;
+# cukup pastikan sudah ada device yang tersambung.
+if ! adb devices | awk 'NR>1 && $2=="device"' | grep -q .; then
+  echo "!! Tidak ada device adb yang tersambung." >&2
+  echo "   Opsi Pengembang -> Wireless debugging, lalu:" >&2
+  echo "     adb pair 127.0.0.1:<PORT_PAIRING> <KODE>   (sekali saja)" >&2
+  echo "     adb connect 127.0.0.1:<PORT_CONNECT>" >&2
+  exit 1
+fi
+
+echo ">> Install $apk"
+adb install -r "$apk" || { echo "!! adb install gagal." >&2; exit 1; }
+
+# applicationId dibaca dari build.gradle.kts supaya tetap benar kalau nama
+# paket diganti atau skrip ini dipakai di proyek lain.
+pkg=$(grep -oP 'applicationId\s*=\s*"\K[^"]+' "$root/app/build.gradle.kts" | head -1)
+if [ -n "$pkg" ]; then
+  echo ">> Menjalankan $pkg"
+  adb shell monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+fi
+echo ">> Selesai."

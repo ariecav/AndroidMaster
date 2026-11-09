@@ -21,7 +21,9 @@ java -version            # wajib 17 atau lebih baru
 ```
 
 **Kalau hasilnya `aarch64`, kamu di HP.** Sebelum menjalankan build apa pun,
-baca `docs/TERMUX_DEBIAN_SETUP.md` dari atas sampai bawah. Ada masalah
+baca `docs/TERMUX_DEBIAN_SETUP.md` dari atas sampai bawah. Cara tercepat
+menyiapkannya: `bash scripts/setup-termux.sh` (aman diulang, hanya menulis di
+luar repo kecuali `local.properties`). Ada masalah
 arsitektur yang membuat `./gradlew assembleDebug` gagal kalau belum disiapkan,
 dan kegagalan itu **bukan** bug di kode repo ini. Jangan "memperbaiki" kode
 untuk mengatasinya.

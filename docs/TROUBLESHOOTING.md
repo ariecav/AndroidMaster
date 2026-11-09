@@ -22,6 +22,20 @@ Sama sebabnya, hanya pesan yang berbeda. Berlaku untuk `aapt2`, `aapt`,
 Yang **tidak** terkena masalah ini karena sebenarnya skrip pemanggil `java`:
 `d8`, `apksigner`, `lint`, `sdkmanager`, `avdmanager`, `retrace`.
 
+### `RES_TABLE_TYPE_TYPE entry offsets overlap actual entry data` / `failed to load include path .../android.jar`
+
+`aapt2` yang dipakai terlalu tua untuk `android.jar` API 37.x. Biasanya karena
+override menunjuk ke `aapt2` bawaan Debian (`/usr/bin/aapt2`, versi 2.19).
+Pakai aapt2 Maven lewat box64: jalankan `bash scripts/setup-termux.sh`, atau
+lihat `TERMUX_DEBIAN_SETUP.md` Langkah 5 Jalur B.
+
+### `AAPT2 ... Daemon #0: Unexpected error output: [BOX64] Error: Symbol nftw not found`
+
+Pembungkus `~/bin/aapt2` belum menyaring keluaran box64 (box64 menulis pesan
+ini ke stdout). Build biasanya tetap sukses, tapi pesannya mengganggu dan bisa
+mengacaukan protokol daemon aapt2. Buat ulang pembungkusnya dengan
+`bash scripts/setup-termux.sh`.
+
 ### Build dibunuh di tengah jalan tanpa pesan error, atau `Gradle daemon disappeared`
 
 Android membunuh prosesnya karena memori. Yang bisa dilakukan:
