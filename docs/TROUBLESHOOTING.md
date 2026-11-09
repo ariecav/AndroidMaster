@@ -99,10 +99,12 @@ EOF
 ```
 
 Efek sampingnya: APK **tidak lagi** di `app/build/outputs/...` melainkan di
-`~/gradle-builds/Master_Android/app/outputs/apk/debug/app-debug.apk`. Cari saja:
+`~/gradle-builds/<NAMA_FOLDER>/app/outputs/apk/debug/app-debug.apk`, dengan
+`<NAMA_FOLDER>` = nama folder project di disk (bukan `rootProject.name`).
+Daripada menghafal, cari saja:
 
 ```bash
-find ~/gradle-builds/Master_Android -name '*.apk'
+find ~/gradle-builds -name '*.apk'
 ```
 
 ### `git init` gagal: `chmod on .git/config.lock failed: Operation not permitted`
@@ -121,7 +123,7 @@ Pakai **Git for Windows**, yang jalan native di NTFS:
 
 ```bash
 GIT="/mnt/c/Program Files/Git/cmd/git.exe"
-cd /mnt/d/ProgramAndroid/Master_Android
+cd /mnt/d/ProgramAndroid/AndroidMaster     # sesuaikan dengan folder kamu
 "$GIT" status
 "$GIT" push
 ```

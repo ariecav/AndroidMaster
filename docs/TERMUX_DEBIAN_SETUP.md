@@ -1,4 +1,4 @@
-# Menjalankan Master_Android di Debian proot (Termux)
+# Menjalankan AndroidMaster di Debian proot (Termux)
 
 Panduan untuk **AI/agent maupun manusia** yang mengembangkan repo ini dari HP
 Android. Ikuti urut; tiap langkah ada perintah verifikasinya. Jangan lanjut
@@ -94,8 +94,8 @@ Ini masalah yang sama bentuknya dengan `/mnt/d` di WSL, hanya lebih parah.
 
 ```bash
 cd ~/projects
-git clone https://github.com/NAMA_KAMU/Master_Android.git
-cd Master_Android
+git clone https://github.com/ariecav/AndroidMaster.git
+cd AndroidMaster
 
 # wrapper harus bisa dieksekusi; bit ini kadang hilang saat clone
 chmod +x gradlew
@@ -222,7 +222,7 @@ tapi satu-satunya cara.
 2. Pancing AGP mengunduh `aapt2` x86_64-nya, lalu temukan file-nya:
 
 ```bash
-cd ~/projects/Master_Android
+cd ~/projects/AndroidMaster
 ./gradlew :app:processDebugResources || true     # boleh gagal, tujuannya unduh
 find ~/.gradle/caches -type f -name aapt2 -path '*aapt2-*-linux*' | head
 ```
@@ -271,7 +271,7 @@ kembali ke HP. Tidak ideal, tapi jujur dan tetap produktif.
 ### Verifikasi Langkah 5
 
 ```bash
-cd ~/projects/Master_Android
+cd ~/projects/AndroidMaster
 ./gradlew :app:processDebugResources --rerun-tasks
 ```
 
@@ -282,7 +282,7 @@ cd ~/projects/Master_Android
 ## 6. Build
 
 ```bash
-cd ~/projects/Master_Android
+cd ~/projects/AndroidMaster
 
 ./gradlew testDebugUnitTest      # paling murah: 3 unit test, harus hijau
 ./gradlew assembleDebug          # APK debug
@@ -342,7 +342,7 @@ dinyalakan ulang. Baca dari layar Opsi Pengembang, jangan dihafal.
 ## 8. Alur kerja harian
 
 ```bash
-cd ~/projects/Master_Android
+cd ~/projects/AndroidMaster
 git pull
 
 # ... edit kode ...

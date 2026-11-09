@@ -1,4 +1,4 @@
-# Master_Android
+# AndroidMaster
 
 Skeleton proyek Android minimal yang **sudah terbukti build**, dipakai sebagai
 titik mula aplikasi baru. Aplikasinya sendiri hanya menampilkan **"Hello Apps"**.
@@ -18,7 +18,7 @@ PC/WSL maupun di **Debian proot di Termux** pada HP Android.
 ## Isi
 
 ```
-Master_Android/
+AndroidMaster/
 ├── CLAUDE.md                     <- BACA DULU kalau kamu AI/agent
 ├── AGENTS.md                     penunjuk ke CLAUDE.md untuk AI non-Claude
 ├── README.md
@@ -110,20 +110,27 @@ Untuk library yang butuh **annotation processing** (Hilt, Room), tambahkan juga
 plugin KSP di `[plugins]` dan terapkan di `app/build.gradle.kts`. KSP berjalan di
 atas JVM, jadi tetap aman di HP aarch64.
 
-## Kirim ke GitHub
+## Git
 
-Repo ini sengaja dibiarkan **tanpa** `git init`. Jalankan sendiri:
+Repo: **https://github.com/ariecav/AndroidMaster**
 
 ```bash
-cd Master_Android
-git init
-git add -A
-git commit -m "Initial commit: Master_Android skeleton"
-git branch -M main
-git remote add origin git@github.com:NAMA_KAMU/Master_Android.git
-git push -u origin main
+git clone https://github.com/ariecav/AndroidMaster.git
+cd AndroidMaster
+cp local.properties.example local.properties    # lalu sesuaikan sdk.dir
 ```
 
-Sebelum commit pertama, pastikan `git status` **tidak** menampilkan
+Sebelum tiap commit, pastikan `git status` **tidak** menampilkan
 `local.properties`, `.gradle/`, `.kotlin/`, atau `build/`. Semuanya sudah ada di
 `.gitignore`; kalau muncul, berarti ada yang salah.
+
+Push lewat HTTPS butuh Personal Access Token dengan izin
+**Contents: Read and write** (password akun GitHub sudah tidak diterima sejak
+2021). Di Termux, alternatif yang lebih enak adalah SSH key karena tidak ada
+masa kedaluwarsa.
+
+> **Catatan WSL.** `git` versi Linux **tidak bisa** dipakai untuk repo yang
+> berada di `/mnt/c`, `/mnt/d`, dan seterusnya — `chmod` selalu ditolak di
+> drvfs sehingga `git` gagal menulis `.git/config`. Pakai Git for Windows
+> (`/mnt/c/Program Files/Git/cmd/git.exe`). Rinciannya di
+> `docs/TROUBLESHOOTING.md`.
